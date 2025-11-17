@@ -33,7 +33,7 @@ model = AutoModelForCausalLM.from_pretrained(
     model_name,
     trust_remote_code=True,
     device_map="auto",
-    torch_dtype=torch.float16
+    dtype=torch.float16
 ).eval()
 
 def qwen_generate(prompt: str) -> str:
@@ -55,7 +55,7 @@ def qwen_generate(prompt: str) -> str:
 
 class CustomLLM:
     def invoke(self, input_data):
-        prompt = input_data.get("text") or input_data
+        prompt = input_data.to_string()
         return qwen_generate(prompt)
 
     def __call__(self, input_data):
@@ -96,7 +96,7 @@ rag_chain_from_docs = (
 )
 
 def get_rag_response(question: str):
-    retrieved_docs = retriever.get_relevant_documents(question)
+    retrieved_docs = retriever.invoke(question)
     for doc in retrieved_docs:
         if not hasattr(doc, 'metadata'):
             doc.metadata = {}
