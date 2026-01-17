@@ -1,11 +1,11 @@
-from components.chunkers.recursive_character_chunker import RecursiveCharacterChunker
-from components.embedders.default_embedder_factory import DefaultEmbedderFactory
-from components.retrievers.chroma_retriever_factory import ChromaRetrieverFactory
-from components.generators.default_generator import DefaultGenerator
+from rag_experiments.components.chunkers.recursive_character_chunker import RecursiveCharacterChunker
+from rag_experiments.components.embedders.default_embedder_factory import DefaultEmbedderFactory
+from rag_experiments.components.retrievers.chroma_retriever_factory import ChromaRetrieverFactory
+from rag_experiments.components.generators.default_generator import DefaultGenerator
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 
-with open("../research/knowledge-base-rules.txt", "r", encoding="utf-8") as f:
+with open("research/knowledge-base-rules.txt", "r", encoding="utf-8") as f:
     raw_text = f.read()
 
 chunker = RecursiveCharacterChunker()
@@ -66,6 +66,7 @@ def get_rag_response(question: str):
     result = rag_chain_from_docs.invoke(retrieved_docs)
     return result
 
-query = "Как работает свойство МИМИКРИЯ?"
-response = get_rag_response(query)
-print(response)
+if __name__ == '__main__':
+    query = "Как работает свойство МИМИКРИЯ?"
+    response = get_rag_response(query)
+    print(response)

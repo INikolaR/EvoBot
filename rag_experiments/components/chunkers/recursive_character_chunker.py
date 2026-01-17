@@ -1,4 +1,4 @@
-from core.chunker import Chunker
+from rag_experiments.core.chunker import Chunker
 from typing import List
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 

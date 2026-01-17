@@ -1,4 +1,4 @@
-from core.embedder_factory import EmbedderFactory
+from rag_experiments.core.embedder_factory import EmbedderFactory
 from langchain_core.embeddings import Embeddings
 from typing import List
 

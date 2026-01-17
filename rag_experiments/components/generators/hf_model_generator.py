@@ -1,4 +1,4 @@
-from core.generator import Generator
+from rag_experiments.core.generator import Generator
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
