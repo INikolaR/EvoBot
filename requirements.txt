@@ -3,3 +3,5 @@ langchain-community
 chromadb
 transformers
 torch
+python-telegram-bot
+langchain_huggingface
