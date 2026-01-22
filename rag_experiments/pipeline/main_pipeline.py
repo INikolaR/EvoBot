@@ -25,8 +25,7 @@ retriever = ChromaRetrieverFactory().create_retriever(
 
 generator = DefaultGenerator()
 
-template = """
-Ты - консультант по серии настольных игр "Эволюция". Ты должен помочь пользователю понять игровые правила.
+template = """Ты - консультант по серии настольных игр "Эволюция". Ты должен помочь пользователю понять игровые правила.
 
 Суть игры заключается в том, чтобы создать наиболее жизнеспособную популяцию животных.
 
@@ -64,7 +63,7 @@ def get_rag_response(question: str):
             doc.metadata = {}
         doc.metadata['question'] = question
     result = rag_chain_from_docs.invoke(retrieved_docs)
-    return result
+    return result.split("\n")[0], format_docs(retrieved_docs)
 
 if __name__ == '__main__':
     query = "Как работает свойство МИМИКРИЯ?"
