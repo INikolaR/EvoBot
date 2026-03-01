@@ -18,10 +18,10 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Я - ИИ-консультант по настольной игре \"Эволюция\", разработаной Дмитрием Кнорре в 2010 году. Из-за большого объёма игровых правил у игроков часто возникают вопросы, для ответа на которые нужно перечитывать правила от начала до конца или даже обращаться к помощи других игроков на специальных форумах. Со мной же в этом нет необходимости: я с радостью предоставлю вам ответ на любой вопрос по игре меньше, чем за минуту!")
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Отправьте ваш вопрос одним сообщением, и я на него отвечу! Для сброса контекста используйте команду /reset")
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Отправьте ваш вопрос одним сообщением, и я на него отвечу, например:\n\nКак работает свойство мимикрия?\n\nДля сброса контекста используйте команду /reset, для получения дополнительной информации - /about. Команда /start запускает бота, а команда /help выводит это сообщение")
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = update.message.text
     telegram_user_id = update.effective_user.id
     user_request_time = datetime.now()
@@ -39,15 +39,21 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     await update.message.reply_text(response)
 
+async def unknown_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        "Извините, я не знаю такой команды. Используйте /help для получения подсказки"
+    )
+
 def main() -> None:
     print("starting bot...")
     init_database()
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("help", help))
     application.add_handler(CommandHandler("reset", reset))
-    application.add_handler(CommandHandler("reset", reset))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+    application.add_handler(CommandHandler("about", about))
+    application.add_handler(MessageHandler(filters.COMMAND, unknown_command))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, answer))
     application.run_polling()
 
 if __name__ == '__main__':
