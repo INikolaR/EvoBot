@@ -5,7 +5,7 @@ from rag_experiments.components.generators.default_generator import DefaultGener
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 
-with open("research/knowledge-base-rules.txt", "r", encoding="utf-8") as f:
+with open("data/documents/knowledge-base-rules.txt", "r", encoding="utf-8") as f:
     raw_text = f.read()
 
 chunker = RecursiveCharacterChunker()
