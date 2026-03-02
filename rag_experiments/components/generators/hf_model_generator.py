@@ -3,7 +3,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 class HFModelGenerator(Generator):
-    def __init__(self, hf_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct"):
+    def __init__(self, hf_model_name: str = "Qwen/Qwen2.5-3B-Instruct"):
         self._tokenizer = AutoTokenizer.from_pretrained(hf_model_name, trust_remote_code=True)
         self._model = AutoModelForCausalLM.from_pretrained(
             hf_model_name,
@@ -20,7 +20,7 @@ class HFModelGenerator(Generator):
         with torch.no_grad():
             outputs = self._model.generate(
                 **inputs,
-                max_new_tokens=256,
+                max_new_tokens=80,
                 do_sample=False,
                 pad_token_id=self._tokenizer.eos_token_id,
                 eos_token_id=self._tokenizer.eos_token_id,

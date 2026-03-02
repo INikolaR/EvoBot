@@ -23,8 +23,8 @@ class RAGService:
         texts = self.chunker.split_text(raw_text)
         return ChromaRetrieverFactory().create_retriever(
             texts, self.embedder,
-            search_kwargs={"k": 2, "fetch_k": 10, "lambda_mult": 0.7},
-            search_type="mmr"
+            search_kwargs={"k": 2},
+            search_type="similarity"
         )
 
     def _init_prompt(self):
@@ -37,7 +37,7 @@ class RAGService:
 
         Суть игры заключается в том, чтобы создать наиболее жизнеспособную популяцию животных.
 
-        Используй только предоставленный контекст, чтобы кратко и ясно ответить на вопрос. Не повторяй фрагменты контекста дословно, если не нужно. Отвечай в 1-2 предложениях, если возможно.
+        Используй только предоставленный контекст, чтобы кратко и ясно ответить на вопрос. Игнорируй не относящиеся к вопросу пользователя фрагменты контекста. Не повторяй фрагменты контекста дословно, если не нужно. Отвечай в одном-двух предложениях, если возможно.
 
         Контекст:
         {context}
@@ -68,7 +68,9 @@ class RAGService:
                 doc.metadata = {}
             doc.metadata['question'] = question
         result = self.rag_chain_from_docs.invoke(retrieved_docs)
-        return result.split("\n")[0], RAGService._format_docs(retrieved_docs)
+        truncated_result = result.split("\n")[0]
+        last_dot_index = truncated_result.rfind('.')
+        return truncated_result[:last_dot_index + 1].strip() if last_dot_index != -1 else truncated_result.strip(), RAGService._format_docs(retrieved_docs)
 
     @staticmethod
     def _format_docs(docs) -> str:
