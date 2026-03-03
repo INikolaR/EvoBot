@@ -7,20 +7,33 @@ from rag_experiments.core.generator import Generator
 from langchain_core.embeddings import Embeddings
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
+import json
 
 class RAGService:
-    def __init__(self, knowledge_base_path: str, chunker: Chunker = RecursiveCharacterChunker(), embedder: Embeddings = HFModelEmbedderFactory().create_embedder(), generator: Generator = HFModelGenerator()):
+    def __init__(self, chunker: Chunker = RecursiveCharacterChunker(), embedder: Embeddings = HFModelEmbedderFactory().create_embedder(), generator: Generator = HFModelGenerator()):
         self.chunker = chunker
         self.embedder = embedder
-        self.retriever = self._init_retriever(knowledge_base_path)
+        self.retriever = self._init_retriever("data/documents/knowledge-base-rules.txt",
+                                              "data/documents/faq.json",
+                                              "data/documents/comments.json")
         self.generator = generator
         self.prompt_template = self._init_prompt()
         self.rag_chain_from_docs = self._init_rag_chain_from_docs()
 
-    def _init_retriever(self, path: str):
-        with open(path, "r", encoding="utf-8") as f:
+    def _init_retriever(self, rules_path: str, faq_path: str, comments_path: str):
+        with open(rules_path, "r", encoding="utf-8") as f:
             raw_text = f.read()
         texts = self.chunker.split_text(raw_text)
+        with open(faq_path, "r", encoding="utf-8") as f:
+            faq_strings_list = json.load(f)
+        texts += faq_strings_list
+        with open(comments_path, "r", encoding="utf-8") as f:
+            comments = json.load(f)
+        useful_comments = []
+        for i in range(1, len(comments)):
+            if comments[i - 1]["author"] == comments[i]["reply_to"]:
+                useful_comments.append(comments[i - 1]["text"] + " " + comments[i]["text"])
+        texts += useful_comments
         return ChromaRetrieverFactory().create_retriever(
             texts, self.embedder,
             search_kwargs={"k": 2},
@@ -54,7 +67,7 @@ class RAGService:
         return (
             {
                 "context": lambda x: RAGService._format_docs(x),
-                "question": lambda x: x[0].metadata.get('question', '') if x and hasattr(x[0], 'metadata') else ''
+                "question": lambda x: x[0].metadata.get("question", "") if x and hasattr(x[0], "metadata") else ""
             }
             | qa_prompt
             | self.generator
@@ -64,14 +77,14 @@ class RAGService:
     def get_response(self, question: str) -> tuple[str, str]:
         retrieved_docs = self.retriever.invoke(question)
         for doc in retrieved_docs:
-            if not hasattr(doc, 'metadata'):
+            if not hasattr(doc, "metadata"):
                 doc.metadata = {}
-            doc.metadata['question'] = question
+            doc.metadata["question"] = question
         result = self.rag_chain_from_docs.invoke(retrieved_docs)
         truncated_result = result.split("\n")[0]
-        last_dot_index = truncated_result.rfind('.')
+        last_dot_index = truncated_result.rfind(".")
         return truncated_result[:last_dot_index + 1].strip() if last_dot_index != -1 else truncated_result.strip(), RAGService._format_docs(retrieved_docs)
 
     @staticmethod
     def _format_docs(docs) -> str:
-        return "\n".join([doc.page_content if hasattr(doc, 'page_content') else doc['content'] for doc in docs])
+        return "\n".join([doc.page_content if hasattr(doc, "page_content") else doc["content"] for doc in docs])
