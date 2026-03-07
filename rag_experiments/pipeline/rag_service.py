@@ -10,13 +10,13 @@ from langchain_core.prompts import PromptTemplate
 import json
 
 class RAGService:
-    def __init__(self, chunker: Chunker = RecursiveCharacterChunker(), embedder: Embeddings = HFModelEmbedderFactory().create_embedder(), generator: Generator = HFModelGenerator()):
-        self.chunker = chunker
-        self.embedder = embedder
+    def __init__(self, chunker: Chunker = None, embedder: Embeddings = None, generator: Generator = None):
+        self.chunker = chunker if chunker is not None else RecursiveCharacterChunker()
+        self.embedder = embedder if embedder is not None else HFModelEmbedderFactory().create_embedder()
         self.retriever = self._init_retriever("data/documents/knowledge-base-rules.txt",
                                               "data/documents/faq.json",
                                               "data/documents/comments.json")
-        self.generator = generator
+        self.generator = generator if generator is not None else HFModelGenerator()
         self.prompt_template = self._init_prompt()
         self.rag_chain_from_docs = self._init_rag_chain_from_docs()
 
