@@ -1,4 +1,3 @@
-# tests/telegram_bot/test_history.py
 import pytest
 import sqlite3
 import os
