@@ -1,4 +1,4 @@
-from rag_experiments.core.retriever_factory import RetrieverFactory
+from assistant.core.retriever_factory import RetrieverFactory
 from typing import List
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStoreRetriever

@@ -1,4 +1,4 @@
-from rag_experiments.core.embedder_factory import EmbedderFactory
+from assistant.core.embedder_factory import EmbedderFactory
 from sklearn.feature_extraction.text import TfidfVectorizer
 from langchain_core.embeddings import Embeddings
 import numpy as np
