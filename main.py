@@ -1,6 +1,6 @@
 import os
 from telegram_bot.controllers.telegram_bot_controller import TelegramBotController
-from rag_experiments.pipeline.rag_service import RAGService
+from assistant.pipeline.rag_service import RAGService
 from telegram_bot.services.history_service import HistoryService
 
 def main():
