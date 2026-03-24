@@ -16,7 +16,7 @@ class TelegramBotController:
         self.app.add_handler(CommandHandler("reset", self.reset))
         self.app.add_handler(CommandHandler("about", self.about))
         self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
-        self.app.add_handler(CommandHandler("unknown", self.unknown))
+        self.app.add_handler(MessageHandler(filters.COMMAND, self.unknown))
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("Привет! Напишите ваш вопрос.")
 
