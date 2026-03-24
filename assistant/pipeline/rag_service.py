@@ -36,8 +36,8 @@ class RAGService:
         texts += useful_comments
         return ChromaRetrieverFactory().create_retriever(
             texts, self.embedder,
-            search_kwargs={"k": 2},
-            search_type="similarity"
+            search_kwargs={"k": 2, "fetch_k": 10, "lambda_mult": 0.9},
+            search_type="mmr"
         )
 
     def _init_prompt(self):
