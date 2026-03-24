@@ -12,7 +12,7 @@ class HFModelGenerator(Generator):
             dtype=torch.float16
         ).eval()
 
-    def __call__(self, input_data: str) -> str:
+    def __call__(self, input_data: str, max_new_tokens: int = 80, temperature: int = 0.1) -> str:
         prompt = input_data.to_string()
         inputs = self._tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048)
         inputs = {k: v.to(self._model.device) for k, v in inputs.items()}
@@ -20,11 +20,11 @@ class HFModelGenerator(Generator):
         with torch.no_grad():
             outputs = self._model.generate(
                 **inputs,
-                max_new_tokens=80,
+                max_new_tokens=max_new_tokens,
                 do_sample=False,
                 pad_token_id=self._tokenizer.eos_token_id,
                 eos_token_id=self._tokenizer.eos_token_id,
-                temperature=0.1
+                temperature=temperature
             )
 
         response = self._tokenizer.decode(outputs[0][inputs['input_ids'].shape[-1]:], skip_special_tokens=True)
