@@ -13,7 +13,7 @@ class HFModelGenerator(Generator):
         ).eval()
 
     def __call__(self, input_data: str, max_new_tokens: int = 80, temperature: int = 0.1) -> str:
-        prompt = input_data.to_string()
+        prompt = input_data
         inputs = self._tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048)
         inputs = {k: v.to(self._model.device) for k, v in inputs.items()}
 
