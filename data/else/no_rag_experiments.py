@@ -4,14 +4,16 @@ import torch
 
 assert torch.cuda.is_available(), "No CUDA provided!"
 
-model = HFModelGenerator("Qwen/Qwen2.5-3B-Instruct")
-judge = HFModelGenerator("Qwen/Qwen2.5-3B-Instruct")
+model = HFModelGenerator("Qwen/Qwen2.5-32B-Instruct")
+judge = HFModelGenerator("Qwen/Qwen2.5-32B-Instruct")
 
 with open("data/else/dataset.json", "r", encoding="utf-8") as f:
     elements = json.load(f)
 
 total_score = 0.0
 count = 0
+
+print("[")
 
 for elem in elements:
     model_template = f"""Ты - консультант по серии настольных игр "Эволюция". Ты должен помочь пользователю понять игровые правила.
@@ -53,11 +55,12 @@ for elem in elements:
 }}"""
     
     judge_answer = judge(judge_template, temperature=0.0, max_new_tokens=256)
-    
-    print("\n\n=================\n\n", elem, model_answer, judge_answer, sep="\n\n===\n\n")
+
+    o = {"question" : elem["question"], "model_answer" : model_answer, "reference_answer" : elem["answer"], "judge_feedback" : judge_answer, "grade" : None}
     
     try:
         data = json.loads(judge_answer[judge_answer.find("{"):judge_answer.find("}")+1])
+        o["grade"] = data
         score = float(data["score"])
         
         total_score += score
@@ -65,7 +68,9 @@ for elem in elements:
     except Exception as e:
         print(f"Ошибка парсинга ответа судьи: {e}")
         pass
+    print(json.dumps(o, ensure_ascii=False, indent=4) + ",")
+print("]")
 
-with open("result.txt", "w", encoding="utf-8") as f:
-    result = 0.0 if count == 0 else total_score / count
-    f.write(str(result))
+
+result = 0.0 if count == 0 else total_score / count
+print(str(result))
