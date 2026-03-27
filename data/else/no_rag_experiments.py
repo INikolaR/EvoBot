@@ -1,5 +1,8 @@
 from assistant.components.generators.hf_model_generator import HFModelGenerator
 import json
+import torch
+
+assert torch.cuda.is_available(), "No CUDA provided!"
 
 model = HFModelGenerator("Qwen/Qwen2.5-3B-Instruct")
 judge = HFModelGenerator("Qwen/Qwen2.5-3B-Instruct")

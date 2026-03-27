@@ -8,7 +8,7 @@ class HFModelGenerator(Generator):
         self._model = AutoModelForCausalLM.from_pretrained(
             hf_model_name,
             trust_remote_code=True,
-            device_map="auto",
+            device_map="cuda",
             dtype=torch.float16
         ).eval()
 
