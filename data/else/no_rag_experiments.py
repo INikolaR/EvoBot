@@ -4,8 +4,8 @@ import torch
 
 assert torch.cuda.is_available(), "No CUDA provided!"
 
-model = HFModelGenerator("Qwen/Qwen2.5-32B-Instruct")
-judge = HFModelGenerator("Qwen/Qwen2.5-32B-Instruct")
+model = HFModelGenerator("Qwen/Qwen2.5-14B-Instruct")
+judge = HFModelGenerator("Qwen/Qwen2.5-14B-Instruct")
 
 with open("data/else/dataset.json", "r", encoding="utf-8") as f:
     elements = json.load(f)
@@ -54,7 +54,7 @@ for elem in elements:
   "reason": "кратко на русском"
 }}"""
     
-    judge_answer = judge(judge_template, temperature=0.0, max_new_tokens=256)
+    judge_answer = judge(judge_template, temperature=0.0, max_new_tokens=128)
 
     o = {"question" : elem["question"], "model_answer" : model_answer, "reference_answer" : elem["answer"], "judge_feedback" : judge_answer, "grade" : None}
     
