@@ -12,17 +12,22 @@ with open("data/else/dataset.json", "r", encoding="utf-8") as f:
 batch_size = 4
 json_results = []
 
-for i in range(0, len(elements), batch_size):
-    elem_batch = elements[i:min(i+batch_size, len(elements))]
-    prompt_batch = [f"""Ты - консультант по серии настольных игр "Эволюция". Ты должен помочь пользователю понять игровые правила.
+system_instruction = """Ты - консультант по серии настольных игр "Эволюция". Ты должен помочь пользователю понять игровые правила.
 
 Суть игры заключается в том, чтобы создать наиболее жизнеспособную популяцию животных.
+                    
+Важно: ответь только на заданный вопрос. Не задавай встречных вопросов, не предлагай продолжить диалог и не генерируй новые темы."""
 
-Отвечай в одном-двух предложениях, если возможно.
+for i in range(0, len(elements), batch_size):
+    elem_batch = elements[i:min(i+batch_size, len(elements))]   
 
-Вопрос: {elem["question"]}
-
-Ответ:""" for elem in elem_batch]
+    prompt_batch = [
+        [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": elem["question"]}
+        ] 
+        for elem in elem_batch
+    ]
 
     model_answer_batch = model(prompt_batch, temperature=0.0)
 
