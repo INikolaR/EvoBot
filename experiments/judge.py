@@ -17,7 +17,7 @@ json_results = []
 system_instruction = """Ты - строгий эксперт по настольной игре «Эволюция».
 Твоя задача: оценить, насколько ответ модели соответствует эталонному ответу ПО СМЫСЛУ.
 
-ФОРМАТ ОТВЕТА:
+ФОРМАТ ОТВЕТА (испольуй двойные кавычки!):
 {{
   "score": число 0.0-1.0,
   "reason": "кратко на русском"
@@ -27,7 +27,7 @@ system_instruction = """Ты - строгий эксперт по настоль
 - 1.0: полностью эквивалентен по смыслу
 - 0.8-0.99: верен, но упущена мелочь
 - 0.5-0.79: частично верен, есть значимые упущения
-- 0.0-0.49: неверен или содержит несуществующие детали
+- 0.0-0.49: неверен, содержит несуществующие детали или отсутствует
 
 ВАЖНО:
 1. Ты должен оценивать смысл, а не дословное совпадение.
@@ -48,7 +48,8 @@ for i in range(0, len(elements), batch_size):
 {elem["reference_answer"]}
 
 ОТВЕТ МОДЕЛИ:
-{elem["model_answer"]}"""}
+{elem["model_answer"]}
+"""}
         ] 
         for elem in elem_batch
     ]
@@ -58,9 +59,11 @@ for i in range(0, len(elements), batch_size):
     for elem, judge_answer in zip(elem_batch, judge_answer_batch):
         o = {"question" : elem["question"], "model_answer" : elem["model_answer"], "reference_answer" : elem["reference_answer"], "judge_feedback" : judge_answer, "grade" : None}
         try:
-            data = json.loads(judge_answer[judge_answer.find("{"):judge_answer.find("}")+1])
-            o["grade"] = data
-            score = float(data["score"])
+            if len(o["model_answer"]) > 0:
+                o["grade"] = json.loads(judge_answer[judge_answer.find("{"):judge_answer.find("}")+1])
+            else:
+                o["grade"] = {"score" : 0.0, "reason" : "ответ отсутствует"}
+            score = float(o["grade"]["score"])
             
             total_score += score
             count += 1
@@ -68,6 +71,7 @@ for i in range(0, len(elements), batch_size):
             print(f"Ошибка парсинга ответа судьи: {e}")
             pass
         json_results.append(o)
+        print(o)
 with open("experiment_results/judge_output.txt", "w", encoding="utf-8") as f:
     f.write(json.dumps(json_results, ensure_ascii=False, indent=4))
 
