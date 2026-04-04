@@ -24,7 +24,7 @@ class HFModelGenerator(Generator):
             torch_dtype=torch.float16,
         ).eval()
 
-    def __call__(self, input_data: Union[str, List[str]], max_new_tokens: int = 1024, temperature: int = 0.1) -> Union[str, List[str]]:
+    def __call__(self, input_data: Union[str, List[str]], max_new_tokens: int = 1024, temperature: float = 0.1) -> Union[str, List[str]]:
         is_single = isinstance(input_data, str)
         conversations = []
         if is_single:
@@ -44,7 +44,7 @@ class HFModelGenerator(Generator):
             formatted_texts, 
             return_tensors="pt", 
             truncation=True, 
-            max_length=1024, 
+            max_length=8192, 
             padding=True
         )
         inputs = {k: v.to(self._model.device) for k, v in inputs.items()}
