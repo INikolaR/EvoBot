@@ -7,34 +7,40 @@ from assistant.components.generators.hf_model_generator import HFModelGenerator
 from assistant.core.chunker import Chunker
 from assistant.core.generator import Generator
 from langchain_core.embeddings import Embeddings
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import PromptTemplate
 import json
 
 class RAGService:
-    def __init__(self, chunker: Chunker = None, embedder: Embeddings = None, generator: Generator = None):
+    def __init__(self, chunker: Chunker = None, embedder: Embeddings = None, generator: Generator = None, use_rules: bool = True, use_faq: bool = True, use_comments: bool = True):
         self.chunker = chunker if chunker is not None else RecursiveCharacterChunker()
         self.embedder = embedder if embedder is not None else HFModelEmbedderFactory().create_embedder()
-        self.retriever = self._init_retriever("data/documents//rules/knowledge-base-rules.txt",
+        self.retriever = self._init_retriever("data/documents/rules/knowledge-base-rules.txt",
                                               "data/documents/faq/faq.json",
-                                              "data/documents/comments/comments.json")
+                                              "data/documents/comments/comments.json",
+                                              use_rules,
+                                              use_faq,
+                                              use_comments)
         self.generator = generator if generator is not None else HFModelGenerator()
         self.rag_chain_from_docs = self._init_rag_chain_from_docs()
 
-    def _init_retriever(self, rules_path: str, faq_path: str, comments_path: str):
-        with open(rules_path, "r", encoding="utf-8") as f:
-            raw_text = f.read()
-        texts = self.chunker.split_text(raw_text)
-        with open(faq_path, "r", encoding="utf-8") as f:
-            faq_strings_list = json.load(f)
-        texts += faq_strings_list
-        with open(comments_path, "r", encoding="utf-8") as f:
-            comments = json.load(f)
-        useful_comments = []
-        for i in range(1, len(comments)):
-            if comments[i - 1]["author"] == comments[i]["reply_to"]:
-                useful_comments.append(comments[i - 1]["text"] + " " + comments[i]["text"])
-        texts += useful_comments
+    def _init_retriever(self, rules_path: str, faq_path: str, comments_path: str, use_rules: bool, use_faq: bool, use_comments: bool):
+        assert use_rules or use_faq or use_comments, "At least one of sources should be used"
+        texts = []
+        if use_rules:
+            with open(rules_path, "r", encoding="utf-8") as f:
+                raw_text = f.read()
+            texts += self.chunker.split_text(raw_text)
+        if use_faq:
+            with open(faq_path, "r", encoding="utf-8") as f:
+                faq_strings_list = json.load(f)
+            texts += faq_strings_list
+        if use_comments:
+            with open(comments_path, "r", encoding="utf-8") as f:
+                comments = json.load(f)
+            useful_comments = []
+            for i in range(1, len(comments)):
+                if comments[i - 1]["author"] == comments[i]["reply_to"]:
+                    useful_comments.append(comments[i - 1]["text"] + " " + comments[i]["text"])
+            texts += useful_comments
         return ChromaRetrieverFactory().create_retriever(
             texts, self.embedder,
             search_kwargs={"k": 2, "fetch_k": 10, "lambda_mult": 0.9},
@@ -42,7 +48,7 @@ class RAGService:
         )
 
     def _init_rag_chain_from_docs(self):
-        def format_conversation(retrieved_docs_for_each_question):
+        def rag_chain(retrieved_docs_for_each_question):
 
             contexts = [RAGService._format_docs(retrieved_docs) for retrieved_docs in retrieved_docs_for_each_question]
             
@@ -60,7 +66,7 @@ class RAGService:
                     
 Важно: ответь только на заданный вопрос. Не задавай встречных вопросов, не предлагай продолжить диалог и не генерируй новые темы. Для ответа на вопрос используй предоставленный контекст."""
 
-            return [[
+            prompts = [[
                 {"role": "system", "content": system_content},
                 {"role": "user", "content": f"""
 Контекст:
@@ -71,7 +77,9 @@ class RAGService:
 """}
             ] for context, question in zip(contexts, questions)]
 
-        return format_conversation | self.generator
+            return self.generator(prompts)
+
+        return rag_chain
 
     def get_response(self, questions: str | List[str]) -> tuple[str, str]:
         if isinstance(questions, str):
@@ -85,13 +93,9 @@ class RAGService:
                 doc.metadata["question"] = question
             retrieved_docs_for_each_question.append(retrieved_docs)
         
-        answers = self.rag_chain_from_docs.invoke(retrieved_docs_for_each_question)
-
-        # truncated_result = result.split("\n")[0]
-        # last_dot_index = truncated_result.rfind(".")
-        # final_answer = truncated_result[:last_dot_index + 1].strip() if last_dot_index != -1 else truncated_result.strip()
+        answers = self.rag_chain_from_docs(retrieved_docs_for_each_question)
         
-        return answers, RAGService._format_docs(retrieved_docs_for_each_question)
+        return answers, [RAGService._format_docs(retrieved_docs) for retrieved_docs in retrieved_docs_for_each_question]
 
     @staticmethod
     def _format_docs(docs) -> str:

@@ -1,6 +1,6 @@
 from assistant.pipeline.rag_service import RAGService
-from assistant.conponents.chunkers.recursive_character_chunker import RecursiveCharacterChunker
-from assistant.conponents.embedders.hf_model_embedder_factory import HFModelEmbedderFactory
+from assistant.components.chunkers.recursive_character_chunker import RecursiveCharacterChunker
+from assistant.components.embedders.hf_model_embedder_factory import HFModelEmbedderFactory
 from assistant.components.generators.hf_model_generator import HFModelGenerator
 import json
 import torch
@@ -10,7 +10,7 @@ assert torch.cuda.is_available(), "No CUDA provided!"
 rag_service = RAGService(
     RecursiveCharacterChunker(chunk_size=500, chunk_overlap=100),
     HFModelEmbedderFactory().create_embedder(hf_model_name="Qwen/Qwen3-Embedding-0.6B"),
-    HFModelGenerator("Qwen/Qwen2.5-14B-Instruct"))
+    HFModelGenerator("Qwen/Qwen2.5-3B-Instruct"))
 
 with open("data/else/dataset.json", "r", encoding="utf-8") as f:
     elements = json.load(f)
