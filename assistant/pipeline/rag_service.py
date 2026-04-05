@@ -1,3 +1,5 @@
+from typing import List
+
 from assistant.components.chunkers.recursive_character_chunker import RecursiveCharacterChunker
 from assistant.components.embedders.hf_model_embedder_factory import HFModelEmbedderFactory
 from assistant.components.retrievers.chroma_retriever_factory import ChromaRetrieverFactory
@@ -17,7 +19,6 @@ class RAGService:
                                               "data/documents/faq/faq.json",
                                               "data/documents/comments/comments.json")
         self.generator = generator if generator is not None else HFModelGenerator()
-        self.prompt_template = self._init_prompt()
         self.rag_chain_from_docs = self._init_rag_chain_from_docs()
 
     def _init_retriever(self, rules_path: str, faq_path: str, comments_path: str):
@@ -40,50 +41,57 @@ class RAGService:
             search_type="mmr"
         )
 
-    def _init_prompt(self):
-        from langchain_core.prompts import PromptTemplate
-        template = """Ты - консультант по серии настольных игр "Эволюция"..."""
-        return PromptTemplate(template=template, input_variables=["context", "question"])
-    
     def _init_rag_chain_from_docs(self):
-        template = """Ты - консультант по серии настольных игр "Эволюция". Ты должен помочь пользователю понять игровые правила.
+        def format_conversation(retrieved_docs_for_each_question):
 
-        Суть игры заключается в том, чтобы создать наиболее жизнеспособную популяцию животных.
+            contexts = [RAGService._format_docs(retrieved_docs) for retrieved_docs in retrieved_docs_for_each_question]
+            
+            questions = []
+            for retrieved_docs in retrieved_docs_for_each_question:
+                if retrieved_docs and hasattr(retrieved_docs[0], "metadata"):
+                    question = retrieved_docs[0].metadata.get("question", "")
+                    questions.append(question)
+                else:
+                    questions.append("")
+            
+            system_content = """Ты - консультант по серии настольных игр "Эволюция". Ты должен помочь пользователю понять игровые правила.
 
-        Используй только предоставленный контекст, чтобы кратко и ясно ответить на вопрос. Игнорируй не относящиеся к вопросу пользователя фрагменты контекста. Не повторяй фрагменты контекста дословно, если не нужно. Отвечай в одном-двух предложениях, если возможно.
+Суть игры заключается в том, чтобы создать наиболее жизнеспособную популяцию животных.
+                    
+Важно: ответь только на заданный вопрос. Не задавай встречных вопросов, не предлагай продолжить диалог и не генерируй новые темы. Для ответа на вопрос используй предоставленный контекст."""
 
-        Контекст:
-        {context}
+            return [[
+                {"role": "system", "content": system_content},
+                {"role": "user", "content": f"""
+Контекст:
+{context}
 
-        Вопрос: {question}
+Вопрос:
+{question}
+"""}
+            ] for context, question in zip(contexts, questions)]
 
-        Ответ:"""
+        return format_conversation | self.generator
 
-        qa_prompt = PromptTemplate(
-            template=template,
-            input_variables=["context", "question"]
-        )
+    def get_response(self, questions: str | List[str]) -> tuple[str, str]:
+        if isinstance(questions, str):
+            questions = [questions]
+        retrieved_docs_for_each_question = []
+        for question in questions:
+            retrieved_docs = self.retriever.invoke(question)
+            for doc in retrieved_docs:
+                if not hasattr(doc, "metadata"):
+                    doc.metadata = {}
+                doc.metadata["question"] = question
+            retrieved_docs_for_each_question.append(retrieved_docs)
+        
+        answers = self.rag_chain_from_docs.invoke(retrieved_docs_for_each_question)
 
-        return (
-            {
-                "context": lambda x: RAGService._format_docs(x),
-                "question": lambda x: x[0].metadata.get("question", "") if x and hasattr(x[0], "metadata") else ""
-            }
-            | qa_prompt
-            | self.generator
-            | StrOutputParser()
-        )
-
-    def get_response(self, question: str) -> tuple[str, str]:
-        retrieved_docs = self.retriever.invoke(question)
-        for doc in retrieved_docs:
-            if not hasattr(doc, "metadata"):
-                doc.metadata = {}
-            doc.metadata["question"] = question
-        result = self.rag_chain_from_docs.invoke(retrieved_docs)
-        truncated_result = result.split("\n")[0]
-        last_dot_index = truncated_result.rfind(".")
-        return truncated_result[:last_dot_index + 1].strip() if last_dot_index != -1 else truncated_result.strip(), RAGService._format_docs(retrieved_docs)
+        # truncated_result = result.split("\n")[0]
+        # last_dot_index = truncated_result.rfind(".")
+        # final_answer = truncated_result[:last_dot_index + 1].strip() if last_dot_index != -1 else truncated_result.strip()
+        
+        return answers, RAGService._format_docs(retrieved_docs_for_each_question)
 
     @staticmethod
     def _format_docs(docs) -> str:
