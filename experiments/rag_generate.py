@@ -10,7 +10,10 @@ assert torch.cuda.is_available(), "No CUDA provided!"
 rag_service = RAGService(
     RecursiveCharacterChunker(chunk_size=500, chunk_overlap=100),
     HFModelEmbedderFactory().create_embedder(hf_model_name="Qwen/Qwen3-Embedding-0.6B"),
-    HFModelGenerator("Qwen/Qwen2.5-3B-Instruct"))
+    HFModelGenerator("Qwen/Qwen2.5-3B-Instruct"),
+    use_rules=True,
+    use_faq=True,
+    use_comments=True)
 
 with open("data/else/dataset.json", "r", encoding="utf-8") as f:
     elements = json.load(f)
