@@ -6,6 +6,8 @@ from typing import List, Union
 class HFModelGenerator(Generator):
     def __init__(self, hf_model_name: str = "Qwen/Qwen2.5-3B-Instruct", use_4bit: bool = False):
         self._tokenizer = AutoTokenizer.from_pretrained(hf_model_name, trust_remote_code=True)
+        self._tokenizer.padding_side = "left"
+        self._tokenizer.pad_token = self._tokenizer.eos_token
         if use_4bit:
             quantization_config = BitsAndBytesConfig(
                 load_in_4bit=True,
@@ -52,6 +54,7 @@ class HFModelGenerator(Generator):
         with torch.no_grad():
             outputs = self._model.generate(
                 **inputs,
+                attention_mask=inputs['attention_mask'],
                 max_new_tokens=max_new_tokens,
                 do_sample=(temperature > 0),
                 pad_token_id=self._tokenizer.eos_token_id,
