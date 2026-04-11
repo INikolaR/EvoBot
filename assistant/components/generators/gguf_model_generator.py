@@ -10,7 +10,7 @@ class GGUFModelGenerator:
         n_ctx: int = 4096,
         use_4bit: bool = True
     ):
-        filename = "*q4_k_m.gguf" if use_4bit else "*fp16.gguf"
+        filename = "*q4_k_m*.gguf" if use_4bit else "*fp16.gguf"
 
         if os.path.isfile(model_path_or_repo):
             self._llm = Llama(
