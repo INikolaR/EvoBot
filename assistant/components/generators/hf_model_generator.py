@@ -54,7 +54,6 @@ class HFModelGenerator(Generator):
         with torch.no_grad():
             outputs = self._model.generate(
                 **inputs,
-                attention_mask=inputs['attention_mask'],
                 max_new_tokens=max_new_tokens,
                 do_sample=(temperature > 0),
                 pad_token_id=self._tokenizer.eos_token_id,
