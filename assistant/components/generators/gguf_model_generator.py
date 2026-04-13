@@ -42,7 +42,7 @@ class GGUFModelGenerator:
             verbose=False,
         )
 
-    def __call__(self, input_data: Union[str, List[str]], max_new_tokens: int = 1024, temperature: float = 0.1) -> Union[str, List[str]]:
+    def __call__(self, input_data: List[dict], max_new_tokens: int = 1024, temperature: float = 0.1) -> Union[str, List[str]]:
         responses = []
         for dialog in input_data:
             output = self._llm.create_chat_completion(
