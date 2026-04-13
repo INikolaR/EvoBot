@@ -1,13 +1,13 @@
-from assistant.components.generators.hf_model_generator import HFModelGenerator
+from assistant.components.generators.gguf_model_generator import GGUFModelGenerator
 import json
 import torch
 
 assert torch.cuda.is_available(), "No CUDA provided!"
 
-judge = HFModelGenerator("Qwen/Qwen2.5-14B-Instruct")
+judge = GGUFModelGenerator("Qwen/Qwen2.5-14B-Instruct-GGUF")
 
 with open("experiment_results/model_output.txt", "r", encoding="utf-8") as f:
-    elements = json.load(f) # {"question" : "", "model_answer" : "", "reference_answer" : ""}
+    elements = json.load(f) # {"question" : "", "model_answer" : "", "reference_answer" : "", "model_context" : "", "reference_context" : ""}
 
 total_score = 0
 count = 0
@@ -16,22 +16,22 @@ batch_size = 4
 json_results = []
 
 system_instruction = """Ты - строгий эксперт по настольной игре «Эволюция».
-Твоя задача: оценить, насколько ответ модели соответствует эталонному ответу ПО СМЫСЛУ.
+Твоя задача: оценить, насколько ответ модели соответствует эталонному ответу и фрагменту правил игры ПО СМЫСЛУ.
 
 ТЫ ДОЛЖЕН ПРЕДОСТАВИТЬ ОТВЕТ СТРОГО В ФОРМАТЕ JSON:
 {
-  "score": число 0.0-1.0,
-  "reason": "кратко на русском"
+  "reason": "кратко на русском",
+  "score": число 0.0-1.0
 }
 
-Наличие в ответе модели любых деталей, отсутствующих в эталонном ответе, снижает оценку.
+Наличие в ответе модели любых деталей, отсутствующих во фрагменте правил игры, снижает оценку.
 Отсутствие в ответе модели любых деталей, упомянутых в эталонном ответе, снижает оценку.
 
 КРИТЕРИИ:
-- 1.0: полностью эквивалентен по смыслу
-- 0.8-0.99: верен, но упущена мелочь
-- 0.5-0.79: частично верен, есть значимые упущения
-- 0.0-0.49: неверен, содержит не указанные в эталонном ответе детали или отсутствует
+- 1.0: содержит все детали из эталонного ответа и не содержит деталей, не указанных во фрагменте правил
+- 0.8-0.99: упускает мелочь по сравнению с эталонным ответом и не содержит деталей, не указанных во фрагменте правил
+- 0.5-0.79: есть значимые упущения по сравнению с эталонным ответом или есть незначительные детали, отсутствующие во фрагменте правил
+- 0.0-0.49: неверен или содержит значительные детали, отсутствующие во фрагменте правил игры
 
 ВАЖНО:
 1. Ты должен оценивать смысл, а не дословное совпадение.
@@ -51,6 +51,9 @@ for i in range(0, len(elements), batch_size):
 ЭТАЛОННЫЙ ОТВЕТ:
 {elem["reference_answer"]}
 
+ФРАГМЕНТ ПРАВИЛ:
+{elem["reference_context"]}
+
 ОТВЕТ МОДЕЛИ:
 {elem["model_answer"]}
 
@@ -68,7 +71,10 @@ for i in range(0, len(elements), batch_size):
             if len(o["model_answer"]) > 0:
                 end = judge_answer.find("}")
                 start = judge_answer.rfind('{', 0, end)
-                o["grade"] = json.loads(judge_answer[start:end+1])
+                expected_json = judge_answer[start:end+1]
+                count_quotes = expected_json.count("\"")
+                expected_json_without_quotes_in_reason = expected_json.replace("\"", "\'", count_quotes - 3).replace("\'", "\"", 3)
+                o["grade"] = json.loads(expected_json_without_quotes_in_reason)
             else:
                 o["grade"] = {"score" : 0.0, "reason" : "ответ отсутствует"}
             score = float(o["grade"]["score"])

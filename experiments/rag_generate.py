@@ -26,9 +26,9 @@ for i in range(0, len(elements), batch_size):
 
     questions = [elem["question"] for elem in elem_batch]
 
-    result_batch, _ = rag_service.get_response(questions)
+    result_batch, context_batch = rag_service.get_response(questions)
 
-    json_result_batch = [{"question" : elem["question"], "model_answer" : result, "reference_answer" : elem["answer"]} for elem, result in zip(elem_batch, result_batch)]
+    json_result_batch = [{"question" : elem["question"], "model_answer" : result, "reference_answer" : elem["answer"], "model_context" : context, "reference_context" : elem["paragraph"]} for elem, result, context in zip(elem_batch, result_batch, context_batch)]
 
     json_results.extend(json_result_batch)
 
