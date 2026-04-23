@@ -19,6 +19,9 @@ system_instruction = """Ты - консультант по серии насто
 generator_names = ["Qwen/Qwen2.5-3B-Instruct", "Qwen/Qwen2.5-7B-Instruct", "Qwen/Qwen2.5-14B-Instruct", "Qwen/Qwen2.5-32B-Instruct"]
 for generator_name in generator_names[:2]:
 
+    torch.cuda.empty_cache()
+    model = HFModelGenerator(model_name=generator_name)
+
     batch_size = 4
     json_results = []
 
