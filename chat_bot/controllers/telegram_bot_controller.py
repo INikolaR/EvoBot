@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from assistant.pipeline.rag_service import RAGService
-from telegram_bot.services.history_service import HistoryService
+from chat_bot.services.history_service import HistoryService
 
 class TelegramBotController:
     def __init__(self, token: str, rag_service: RAGService, history_service: HistoryService):

@@ -2,7 +2,7 @@ import pytest
 import sqlite3
 import os
 from datetime import datetime
-from telegram_bot.services.history_service import HistoryService
+from chat_bot.services.history_service import HistoryService
 
 
 @pytest.fixture
