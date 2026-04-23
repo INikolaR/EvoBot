@@ -38,16 +38,16 @@ for generator_name in generator_names[:2]:
 
 Важно: ты отвечаешь ТОЛЬКО на русском языке. Запрещено использовать китайские, английские или иные иностранные слова, символы или фразы. Все ответы должны содержать только кириллицу, цифры и базовые знаки препинания."""
 
-            prompts = [[
-                {"role": "system", "content": system_content},
-                {"role": "user", "content": f"""
+        prompts = [[
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": f"""
 Контекст:
 {elem["paragraph"]}
 
 Вопрос:
 {elem["question"]}
 """}
-            ] for elem in elem_batch]
+        ] for elem in elem_batch]
 
         model_answer_batch = model(prompt_batch, temperature=0.0)
 
