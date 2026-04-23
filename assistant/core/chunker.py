@@ -5,3 +5,6 @@ class Chunker(ABC):
     @abstractmethod
     def split_text(self, text: str) -> List[str]:
         pass
+
+    def describe(self) -> str:
+        pass

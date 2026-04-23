@@ -12,7 +12,7 @@ assert torch.cuda.is_available(), "No CUDA provided!"
 chunkers = []
 for chunk_size in [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]:
     for chunk_overlap in [0, 10, 50, 100]:
-        chunkers.append(RecursiveCharacterChunker(chunk_size=500, chunk_overlap=100))
+        chunkers.append(RecursiveCharacterChunker(chunk_size=chunk_size, chunk_overlap=chunk_overlap))
 
 # embedder_names = ["Qwen/Qwen3-Embedding-0.6B", "Qwen/Qwen3-Embedding-4B", "Qwen/Qwen3-Embedding-8B", "ai-sage/Giga-Embeddings-instruct", "ai-forever/FRIDA", "sergeyzh/BERTA", "intfloat/e5-mistral-7b-instruct"]
 model_name = sys.argv[1]
@@ -42,5 +42,5 @@ for chunker in chunkers[:2]:
 
         json_results.extend(json_result_batch)
 
-    with open(f"experiment_results/retriever_output_chunker_{chunk_size}_embedder_{model_name.split('/')[-1]}.txt", "w", encoding="utf-8") as f:
+    with open(f"experiment_results/retriever_output_chunker_{chunker.describe()}_embedder_{model_name.split('/')[-1]}.txt", "w", encoding="utf-8") as f:
         f.write(json.dumps(json_results, ensure_ascii=False, indent=4))
