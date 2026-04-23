@@ -40,5 +40,5 @@ for chunker in chunkers[:2]:
 
             json_results.extend(json_result_batch)
 
-        with open(f"experiment_results/retriever_output_chunker_{chunk_size}_embedder_{model_name.split("/")[-1]}.txt", "w", encoding="utf-8") as f:
+        with open(f"experiment_results/retriever_output_chunker_{chunk_size}_embedder_{model_name.split('/')[-1]}.txt", "w", encoding="utf-8") as f:
             f.write(json.dumps(json_results, ensure_ascii=False, indent=4))
