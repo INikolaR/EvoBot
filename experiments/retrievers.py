@@ -4,6 +4,7 @@ from assistant.components.embedders.hf_model_embedder_factory import HFModelEmbe
 from assistant.components.generators.hf_model_generator import HFModelGenerator
 import json
 import torch
+import gc
 
 assert torch.cuda.is_available(), "No CUDA provided!"
 
@@ -12,9 +13,13 @@ for chunk_size in [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]:
     for chunk_overlap in [0, 10, 50, 100]:
         chunkers.append(RecursiveCharacterChunker(chunk_size=500, chunk_overlap=100))
 
+print("chunkers created")
 embedder_names = ["Qwen/Qwen3-Embedding-0.6B", "Qwen/Qwen3-Embedding-4B", "Qwen/Qwen3-Embedding-8B", "ai-sage/Giga-Embeddings-instruct", "ai-forever/FRIDA", "sergeyzh/BERTA", "intfloat/e5-mistral-7b-instruct"]
 for chunker in chunkers[:2]:
     for model_name in embedder_names[:2]:
+        print(model_name)
+        gc.collect()
+        torch.cuda.empty_cache()
         rag_service = RAGService(
             chunker,
             HFModelEmbedderFactory().create_embedder(hf_model_name=model_name),
