@@ -10,16 +10,17 @@ import sys
 assert torch.cuda.is_available(), "No CUDA provided!"
 
 chunkers = []
-for chunk_size in [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]:
-    for chunk_overlap in [0, 10, 50, 100]:
+for chunk_size in [100, 300, 500]:
+    for chunk_overlap in [0, 50]:
         chunkers.append(RecursiveCharacterChunker(chunk_size=chunk_size, chunk_overlap=chunk_overlap))
 
 # embedder_names = ["Qwen/Qwen3-Embedding-0.6B", "Qwen/Qwen3-Embedding-4B", "Qwen/Qwen3-Embedding-8B", "ai-sage/Giga-Embeddings-instruct", "ai-forever/FRIDA", "sergeyzh/BERTA", "intfloat/e5-mistral-7b-instruct"]
 model_name = sys.argv[1]
-for chunker in chunkers[:2]:
+model = HFModelEmbedderFactory().create_embedder(hf_model_name=model_name)
+for chunker in chunkers:
     rag_service = RAGService(
         chunker,
-        HFModelEmbedderFactory().create_embedder(hf_model_name=model_name),
+        model,
         DefaultGenerator(),
         use_rules=True,
         use_faq=True,

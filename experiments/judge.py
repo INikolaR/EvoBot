@@ -66,7 +66,7 @@ for i in range(0, len(elements), batch_size):
     judge_answer_batch = judge(prompt_batch, temperature=0.0, max_new_tokens=1024)
 
     for elem, judge_answer in zip(elem_batch, judge_answer_batch):
-        o = {"question" : elem["question"], "model_answer" : elem["model_answer"], "reference_answer" : elem["reference_answer"], "judge_feedback" : judge_answer, "grade" : None}
+        o = {"question" : elem["question"], "model_answer" : elem["model_answer"], "reference_answer" : elem["reference_answer"], "model_context" : elem["model_context"], "reference_context" : elem["reference_context"], "judge_feedback" : judge_answer, "grade" : None}
         try:
             if len(o["model_answer"]) > 0:
                 end = judge_answer.find("}")

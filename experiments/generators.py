@@ -1,6 +1,3 @@
-from assistant.pipeline.rag_service import RAGService
-from assistant.components.chunkers.recursive_character_chunker import RecursiveCharacterChunker
-from assistant.components.embedders.hf_model_embedder_factory import HFModelEmbedderFactory
 from assistant.components.generators.hf_model_generator import HFModelGenerator
 import json
 import torch
@@ -38,7 +35,7 @@ for generator_name in generator_names[:2]:
 
 Важно: ты отвечаешь ТОЛЬКО на русском языке. Запрещено использовать китайские, английские или иные иностранные слова, символы или фразы. Все ответы должны содержать только кириллицу, цифры и базовые знаки препинания."""
 
-        prompts = [[
+        prompt_batch = [[
             {"role": "system", "content": system_content},
             {"role": "user", "content": f"""
 Контекст:
@@ -55,5 +52,5 @@ for generator_name in generator_names[:2]:
 
         json_results.extend(json_result_batch)
 
-    with open(f"experiment_results/generator_output_model_{model_name.split('/')[-1]}.txt", "w", encoding="utf-8") as f:
+    with open(f"experiment_results/generator_output_model_{generator_name.split('/')[-1]}.txt", "w", encoding="utf-8") as f:
         f.write(json.dumps(json_results, ensure_ascii=False, indent=4))
