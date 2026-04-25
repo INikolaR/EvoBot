@@ -17,7 +17,7 @@ system_instruction = """Ты - консультант по серии насто
 generator_name = sys.argv[1]
 
 torch.cuda.empty_cache()
-model = HFModelGenerator(model_name=generator_name)
+model = HFModelGenerator(hf_model_name=generator_name)
 
 batch_size = 4
 json_results = []
@@ -48,7 +48,7 @@ for i in range(0, len(elements), batch_size):
 
     model_answer_batch = model(prompt_batch, temperature=0.0)
 
-    json_result_batch = [{"question" : elem["question"], "model_answer" : model_answer, "reference_answer" : elem["answer"]} for elem, model_answer in zip(elem_batch, model_answer_batch)]
+    json_result_batch = [{"question" : elem["question"], "model_answer" : model_answer, "reference_answer" : elem["answer"], "reference_context" : elem["paragraph"]} for elem, model_answer in zip(elem_batch, model_answer_batch)]
 
     json_results.extend(json_result_batch)
 
