@@ -90,10 +90,10 @@ for txt_file in txt_files:
                 error_count += 1
                 pass
             json_results.append(o)
-    with open("experiment_results/judge_output.txt", "w", encoding="utf-8") as f:
+    with open(f"experiment_results/judge_outputs/" + txt_file.split('/')[-1], "w", encoding="utf-8") as f:
         f.write(json.dumps(json_results, ensure_ascii=False, indent=4))
 
-    with open("experiment_results/report.txt", "w", encoding="utf-8") as f:
+    with open("experiment_results/reports/" + txt_file.split('/')[-1], "w", encoding="utf-8") as f:
         f.write("question count: " + str(count + error_count) + "\n")
         f.write("error count: " + str(error_count) + "\n")
         f.write("error ratio: " +  str(0.0 if count + error_count == 0 else error_count / (count + error_count)) + "\n")
