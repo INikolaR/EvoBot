@@ -53,8 +53,8 @@ class VKBotController:
                 user_id=msg.get("from_id"),
                 chat_type=2,
                 user_text=raw_text,
-                model_response=response,
-                rag_context=context_docs,
+                model_response=response[0],
+                rag_context="\n".join(context_docs),
                 request_time=user_request_time,
                 response_time=response_time
             )

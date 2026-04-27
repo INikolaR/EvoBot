@@ -4,7 +4,7 @@ import torch
 from typing import List, Union
 
 class HFModelGenerator(Generator):
-    def __init__(self, hf_model_name: str = "Qwen/Qwen2.5-3B-Instruct", use_4bit: bool = False):
+    def __init__(self, hf_model_name: str = "Qwen/Qwen2.5-7B-Instruct", use_4bit: bool = False):
         self._tokenizer = AutoTokenizer.from_pretrained(hf_model_name, trust_remote_code=True)
         self._tokenizer.padding_side = "left"
         self._tokenizer.pad_token = self._tokenizer.eos_token
