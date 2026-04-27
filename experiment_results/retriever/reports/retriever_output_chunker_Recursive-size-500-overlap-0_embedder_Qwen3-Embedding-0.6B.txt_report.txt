@@ -1,0 +1,4 @@
+items count: 158
+error count: 2.0
+error ratio: 0,01265822784
+score: 
