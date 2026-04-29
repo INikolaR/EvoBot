@@ -3,14 +3,17 @@ import json
 import torch
 import glob
 import os
+import sys
 
 assert torch.cuda.is_available(), "No CUDA provided!"
 
+input_folder = sys.argv[1]
+output_folder = sys.argv[2]
+report_folder = sys.argv[3]
+
 judge = HFModelGenerator("Qwen/Qwen2.5-14B-Instruct")
 
-directory = "experiment_results"
-
-txt_files = glob.glob(os.path.join(directory, "*.txt"))
+txt_files = glob.glob(os.path.join(input_folder, "*.txt"))
 
 for file_path in txt_files:
     with open(file_path, "r", encoding="utf-8") as f:
@@ -101,10 +104,10 @@ for file_path in txt_files:
                 error_count += 1
                 pass
             json_results.append(o)
-    with open("experiment_results/judge_outputs/" + file_path.split('/')[-1], "w", encoding="utf-8") as f:
+    with open(f"{output_folder}/" + file_path.split('/')[-1], "w", encoding="utf-8") as f:
         f.write(json.dumps(json_results, ensure_ascii=False, indent=4))
 
-    with open("experiment_results/reports/" + file_path.split('/')[-1] + "_report.txt", "w", encoding="utf-8") as f:
+    with open(f"{report_folder}/" + file_path.split('/')[-1] + "_report.txt", "w", encoding="utf-8") as f:
         f.write("items count: " + str(count + error_count) + "\n")
         f.write("error count: " + str(error_count) + "\n")
         f.write("error ratio: " +  str(0.0 if count + error_count == 0 else error_count / (count + error_count)) + "\n")

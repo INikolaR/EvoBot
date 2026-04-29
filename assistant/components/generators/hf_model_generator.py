@@ -70,4 +70,4 @@ class HFModelGenerator(Generator):
         return responses[0] if is_single else responses
     
     def describe(self) -> str:
-        return f"{self._model_name.split("/")[-1]}"
+        return f"{self._model_name.split('/')[-1]}"

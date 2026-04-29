@@ -17,10 +17,14 @@ chunkers = []
 if chunker_name == "FixedChunker":
     for chunk_size in [100, 300, 500, 700]:
         for chunk_overlap in [50, 100, 200]:
+            if chunk_size <= chunk_overlap:
+                continue
             chunkers.append(FixedLengthChunker(chunk_size=chunk_size, chunk_overlap=chunk_overlap))
 elif chunker_name == "RecursiveChunker":
     for chunk_size in [100, 300, 500, 700]:
         for chunk_overlap in [50, 100, 200]:
+            if chunk_size <= chunk_overlap:
+                continue
             chunkers.append(RecursiveCharacterChunker(chunk_size=chunk_size, chunk_overlap=chunk_overlap))
 elif chunker_name == "SemanticChunker":
     chunkers.append(EmbeddingSemanticChunker(model_name=model_name, threshold_type="percentile", threshold_amount=95))
@@ -61,5 +65,5 @@ for chunker in chunkers:
 
         json_results.extend(json_result_batch)
 
-    with open(f"{output_dir}/retriever_output_chunker_{chunker.describe()}_embedder_{model.describe()}.txt", "w", encoding="utf-8") as f:
+    with open(f"{output_dir}/retriever_output_chunker_{chunker.describe()}_embedder_{model_name.split('/')[-1]}.txt", "w", encoding="utf-8") as f:
         f.write(json.dumps(json_results, ensure_ascii=False, indent=4))
