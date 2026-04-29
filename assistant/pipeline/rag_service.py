@@ -39,11 +39,11 @@ class RAGService:
             useful_comments = []
             for i in range(1, len(comments)):
                 if comments[i - 1]["author"] == comments[i]["reply_to"]:
-                    useful_comments.append(comments[i - 1]["text"] + " " + comments[i]["text"])
+                    useful_comments.append(f"Пример пары вопрос-ответ:\nВопрос:\n{comments[i - 1]['text']}\nОтвет:\n{comments[i]['text']}")
             texts += useful_comments
         return ChromaRetrieverFactory().create_retriever(
             texts, self.embedder,
-            search_kwargs={"k": 2, "fetch_k": 10, "lambda_mult": 0.9},
+            search_kwargs={"k": 3, "fetch_k": 10, "lambda_mult": 0.9},
             search_type="mmr"
         )
 
@@ -97,8 +97,12 @@ class RAGService:
         
         answers = self.rag_chain_from_docs(retrieved_docs_for_each_question)
         
-        return answers, [RAGService._format_docs(retrieved_docs) for retrieved_docs in retrieved_docs_for_each_question]
+        return answers, [RAGService._format_docs(docs) for docs in retrieved_docs_for_each_question]
 
     @staticmethod
     def _format_docs(docs) -> str:
-        return "\n".join([doc.page_content if hasattr(doc, "page_content") else doc["content"] for doc in docs])
+        return [doc.page_content if hasattr(doc, "page_content") else doc["content"] for doc in docs]
+
+    @staticmethod
+    def format_docs(docs) -> str:
+        return "\n\n".join(docs)

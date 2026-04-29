@@ -19,3 +19,6 @@ class FixedLengthChunker(Chunker):
             start += self.chunk_size - self.chunk_overlap
             
         return chunks
+    
+    def describe(self) -> str:
+        return f"Fixed-size-{self.chunk_size}-overlap-{self.chunk_overlap}"

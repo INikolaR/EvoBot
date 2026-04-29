@@ -5,6 +5,7 @@ from typing import List, Union
 
 class HFModelGenerator(Generator):
     def __init__(self, hf_model_name: str = "Qwen/Qwen2.5-7B-Instruct", use_4bit: bool = False):
+        self._model_name = hf_model_name
         self._tokenizer = AutoTokenizer.from_pretrained(hf_model_name, trust_remote_code=True)
         self._tokenizer.padding_side = "left"
         self._tokenizer.pad_token = self._tokenizer.eos_token
@@ -67,3 +68,6 @@ class HFModelGenerator(Generator):
             responses.append(decoded.strip())
 
         return responses[0] if is_single else responses
+    
+    def describe(self) -> str:
+        return f"{self._model_name.split("/")[-1]}"
