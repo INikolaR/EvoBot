@@ -7,6 +7,7 @@ from assistant.components.generators.default_generator import DefaultGenerator
 import json
 import torch
 import sys
+import time
 
 assert torch.cuda.is_available(), "No CUDA provided!"
 
@@ -59,9 +60,12 @@ for chunker in chunkers:
 
         questions = [elem["question"] for elem in elem_batch]
 
+        start_time = time.time()
         _, context_batch = rag_service.get_response(questions)
+        end_time = time.time()
+        time_diff = (end_time - start_time) / batch_size
 
-        json_result_batch = [{"question" : elem["question"], "model_contexts" : contexts} for elem, contexts in zip(elem_batch, context_batch)]
+        json_result_batch = [{"question" : elem["question"], "model_contexts" : contexts, "time" : time_diff} for elem, contexts in zip(elem_batch, context_batch)]
 
         json_results.extend(json_result_batch)
 
