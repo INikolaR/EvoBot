@@ -8,6 +8,7 @@ import json
 import torch
 import sys
 import time
+import gc
 
 assert torch.cuda.is_available(), "No CUDA provided!"
 
@@ -36,8 +37,9 @@ else:
 try:
     # embedder_names = ["Qwen/Qwen3-Embedding-0.6B", "Qwen/Qwen3-Embedding-4B", "Qwen/Qwen3-Embedding-8B", "ai-sage/Giga-Embeddings-instruct", "ai-forever/FRIDA", "sergeyzh/BERTA", "intfloat/e5-mistral-7b-instruct"]
     model = HFModelEmbedderFactory().create_embedder(hf_model_name=model_name)
-except:
+except Exception as e:
     print("Unsupported model")
+    print(e)
     exit(1)
 
 for chunker in chunkers:
@@ -52,7 +54,7 @@ for chunker in chunkers:
     with open("data/else/dataset.json", "r", encoding="utf-8") as f:
         elements = json.load(f)
 
-    batch_size = 4
+    batch_size = 1
     json_results = []
 
     for i in range(0, len(elements), batch_size):
@@ -71,3 +73,9 @@ for chunker in chunkers:
 
     with open(f"{output_dir}/retriever_output_chunker_{chunker.describe()}_embedder_{model_name.split('/')[-1]}.txt", "w", encoding="utf-8") as f:
         f.write(json.dumps(json_results, ensure_ascii=False, indent=4))
+    
+    del rag_service
+    torch.cuda.empty_cache()
+    gc.collect()
+    time.sleep(0.5)
+

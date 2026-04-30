@@ -19,4 +19,4 @@ class EmbeddingSemanticChunker(Chunker):
         return self._splitter.split_text(text)
     
     def describe(self) -> str:
-        return f"Semantic-model-{self._model_name}-ttype-{self._threshold_type}-tamount-{self._threshold_amount}"
+        return f"Semantic-model-{self._model_name.split('/')[-1]}-ttype-{self._threshold_type}-tamount-{self._threshold_amount}"
