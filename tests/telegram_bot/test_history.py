@@ -2,7 +2,7 @@ import pytest
 import sqlite3
 import os
 from datetime import datetime
-from chat_bot.services.history_service import HistoryService
+from chat_bot.repositories.history_repository import HistoryRepository
 
 
 @pytest.fixture
@@ -12,7 +12,7 @@ def temp_db_path(tmp_path):
 
 @pytest.fixture
 def service(temp_db_path):
-    return HistoryService(db_path=temp_db_path)
+    return HistoryRepository(db_path=temp_db_path)
 
 
 @pytest.fixture
@@ -34,11 +34,11 @@ class TestInit:
 
     def test_db_file_created(self, temp_db_path):
         assert not os.path.exists(temp_db_path)
-        HistoryService(db_path=temp_db_path)
+        HistoryRepository(db_path=temp_db_path)
         assert os.path.exists(temp_db_path)
 
     def test_table_exists(self, temp_db_path):
-        HistoryService(db_path=temp_db_path)
+        HistoryRepository(db_path=temp_db_path)
         c = sqlite3.connect(temp_db_path)
         cur = c.cursor()
         cur.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='history'")
@@ -46,7 +46,7 @@ class TestInit:
         c.close()
 
     def test_required_columns_exist(self, temp_db_path):
-        HistoryService(db_path=temp_db_path)
+        HistoryRepository(db_path=temp_db_path)
         c = sqlite3.connect(temp_db_path)
         cur = c.cursor()
         cur.execute("PRAGMA table_info(history)")
@@ -129,7 +129,7 @@ class TestAddRequest:
 class TestConnectionManagement:
 
     def test_connection_closed(self, temp_db_path):
-        svc = HistoryService(db_path=temp_db_path)
+        svc = HistoryRepository(db_path=temp_db_path)
         svc.add_request(1, "q", "a")
         c = sqlite3.connect(temp_db_path)
         cur = c.cursor()

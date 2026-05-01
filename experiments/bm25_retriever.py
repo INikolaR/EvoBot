@@ -8,7 +8,7 @@ import json
 import torch
 import sys
 import time
-from langchain.retrievers import BM25Retriever
+from langchain_community.retrievers import BM25Retriever
 import re
 
 def russian_preprocess(text: str) -> str:
@@ -79,9 +79,11 @@ for chunker in chunkers:
         end_time = time.time()
         time_diff = (end_time - start_time) / batch_size
 
-        json_result = {"question" : elem["question"], "model_contexts" : contexts, "time" : time_diff}
+        contexts_text = [doc.page_content for doc in contexts]
 
-        json_results.extend(json_result)
+        json_result = {"question" : elem["question"], "model_contexts" : contexts_text, "time" : time_diff}
+
+        json_results.append(json_result)
 
     with open(f"{output_dir}/retriever_output_chunker_{chunker.describe()}_embedder_BM25.txt", "w", encoding="utf-8") as f:
         f.write(json.dumps(json_results, ensure_ascii=False, indent=4))

@@ -7,6 +7,7 @@ from assistant.components.generators.hf_model_generator import HFModelGenerator
 from assistant.core.chunker import Chunker
 from assistant.core.generator import Generator
 from langchain_core.embeddings import Embeddings
+from chat_bot.services.history_service import HistoryService
 import json
 
 class RAGService:
@@ -48,8 +49,7 @@ class RAGService:
         )
 
     def _init_rag_chain_from_docs(self):
-        def rag_chain(retrieved_docs_for_each_question):
-
+        def rag_chain(retrieved_docs_for_each_question, prev_context_for_each_question):
             contexts = [RAGService._format_docs(retrieved_docs) for retrieved_docs in retrieved_docs_for_each_question]
             
             questions = []
@@ -70,6 +70,7 @@ class RAGService:
 
             prompts = [[
                 {"role": "system", "content": system_content},
+                *prev_context,
                 {"role": "user", "content": f"""
 Контекст:
 {context}
@@ -77,13 +78,13 @@ class RAGService:
 Вопрос:
 {question}
 """}
-            ] for context, question in zip(contexts, questions)]
+            ] for context, question, prev_context in zip(contexts, questions, prev_context_for_each_question)]
 
             return self.generator(prompts)
 
         return rag_chain
 
-    def get_response(self, questions: str | List[str]) -> tuple[str, str]:
+    def get_response(self, questions: str | List[str], prev_context_for_each_question: str | List[str]) -> tuple[str, str]:
         if isinstance(questions, str):
             questions = [questions]
         retrieved_docs_for_each_question = []
@@ -95,7 +96,7 @@ class RAGService:
                 doc.metadata["question"] = question
             retrieved_docs_for_each_question.append(retrieved_docs)
         
-        answers = self.rag_chain_from_docs(retrieved_docs_for_each_question)
+        answers = self.rag_chain_from_docs(retrieved_docs_for_each_question, prev_context_for_each_question)
         
         return answers, [RAGService._format_docs(docs) for docs in retrieved_docs_for_each_question]
 
