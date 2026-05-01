@@ -3,6 +3,7 @@ import threading
 from chat_bot.controllers.telegram_bot_controller import TelegramBotController
 from chat_bot.controllers.vk_bot_controller import VKBotController
 from assistant.pipeline.rag_service import RAGService
+from chat_bot.repositories.history_repository import HistoryRepository
 from chat_bot.services.history_service import HistoryService
 
 def _run_vk_bot(vk_bot: VKBotController):
@@ -26,7 +27,8 @@ def main():
         raise ValueError("SQLITE_PATH not set!")
 
     rag_service = RAGService()
-    history_service = HistoryService(db_path=path)
+    history_repository = HistoryRepository(db_path=path)
+    history_service = HistoryService(history_repository)
     
     tg_bot = TelegramBotController(
         token=tg_token,
@@ -42,9 +44,9 @@ def main():
     
     vk_thread = threading.Thread(target=_run_vk_bot, args=(vk_bot,), daemon=True)
     vk_thread.start()
+    tg_bot.run()
     
     print("STARTED")
-    tg_bot.run()
 
 if __name__ == "__main__":
     main()

@@ -3,9 +3,12 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from datetime import datetime, timezone
 from assistant.pipeline.rag_service import RAGService
 from chat_bot.services.history_service import HistoryService
+from chat_bot.services.models import RequestModel
 
 class TelegramBotController:
     def __init__(self, token: str, rag_service: RAGService, history_service: HistoryService):
+        self.chat_type = 1
+        
         self.token = token
         self.rag_service = rag_service
         self.history_service = history_service
@@ -48,24 +51,26 @@ class TelegramBotController:
         if user_request_time.tzinfo is not None:
             user_request_time = user_request_time.astimezone()
 
-        response, context_docs = self.rag_service.get_response(text)
+        prev_context = self.history_service.get_context_for_llm(user_id, self.chat_type)
+
+        response, context_docs = self.rag_service.get_response(text, prev_context)
 
         response_time = datetime.now()
 
-        self.history_service.add_request(
+        request_model = RequestModel(
             user_id=user_id,
-            chat_type=1,
+            chat_type=self.chat_type,
             user_text=text,
             model_response=response[0],
             rag_context="\n".join(context_docs),
             request_time=user_request_time,
             response_time=response_time
         )
+        self.history_service.add_request(request_model)
         
         await update.message.reply_text(response)
 
     def run(self):
-        print("Starting bot...")
         self.app = Application.builder().token(self.token).build()
         self.setup_handlers()
         self.app.run_polling()

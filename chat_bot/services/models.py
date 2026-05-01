@@ -1,0 +1,20 @@
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
+
+@dataclass
+class RequestModel:
+    user_id: int
+    chat_type: int
+    user_text: str
+    model_response: str
+    request_time: datetime
+    response_time: datetime
+    rag_context: Optional[str] = None
+    prev_request_id: Optional[int] = None
+
+@dataclass
+class UserModel:
+    user_id: int
+    chat_type: int
+    last_request_id: Optional[int] = None

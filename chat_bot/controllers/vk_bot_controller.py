@@ -2,10 +2,13 @@ import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from assistant.pipeline.rag_service import RAGService
 from chat_bot.services.history_service import HistoryService
+from chat_bot.services.models import RequestModel
 from datetime import datetime
 
 class VKBotController:
     def __init__(self, token: str, group_id: int, rag_service: RAGService, history_service: HistoryService):
+        self.chat_type = 2
+        
         self.token = token
         self.group_id = group_id
         self.rag_service = rag_service
@@ -42,22 +45,27 @@ class VKBotController:
         elif text in ("/about"):
             self._send_message(peer_id, self.about_message)
         else:
+            user_id = msg.get("from_id")
             vk_timestamp = msg.get("date")
             user_request_time = datetime.fromtimestamp(vk_timestamp)
 
-            response, context_docs = self.rag_service.get_response(raw_text)
+            prev_context = self.history_service.get_context_for_llm(user_id, self.chat_type)
+
+            response, context_docs = self.rag_service.get_response(raw_text, prev_context)
 
             response_time = datetime.now()
 
-            self.history_service.add_request(
-                user_id=msg.get("from_id"),
-                chat_type=2,
+            request_model = RequestModel(
+                user_id=user_id,
+                chat_type=self.chat_type,
                 user_text=raw_text,
                 model_response=response[0],
                 rag_context="\n".join(context_docs),
                 request_time=user_request_time,
                 response_time=response_time
             )
+
+            self.history_service.add_request(request_model)
             
             self._send_message(peer_id, response)
 
