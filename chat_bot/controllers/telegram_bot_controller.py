@@ -32,6 +32,8 @@ class TelegramBotController:
         await update.message.reply_text(self.start_message)
 
     async def reset(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        user_id = update.effective_user.id
+        self.history_service.reset_context(user_id, self.chat_type)
         await update.message.reply_text(self.reset_message)
 
     async def about(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -53,8 +55,8 @@ class TelegramBotController:
 
         prev_context = self.history_service.get_context_for_llm(user_id, self.chat_type)
 
-        response, context_docs = self.rag_service.get_response(text, prev_context)
-
+        response, context_docs = self.rag_service.get_response(text, [prev_context])
+        
         response_time = datetime.now()
 
         request_model = RequestModel(
@@ -62,13 +64,13 @@ class TelegramBotController:
             chat_type=self.chat_type,
             user_text=text,
             model_response=response[0],
-            rag_context="\n".join(context_docs),
+            rag_context="\n".join(context_docs[0]),
             request_time=user_request_time,
             response_time=response_time
         )
         self.history_service.add_request(request_model)
         
-        await update.message.reply_text(response)
+        await update.message.reply_text(response[0])
 
     def run(self):
         self.app = Application.builder().token(self.token).build()

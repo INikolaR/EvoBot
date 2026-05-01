@@ -45,6 +45,13 @@ class HistoryRepository:
 
     def add_request(self, request_entity: RequestEntity):
         with self._get_connection() as conn:
+            cursor = conn.execute(
+                'SELECT last_request_id FROM users WHERE user_id = ? AND chat_type_id = ?',
+                (request_entity.user_id, request_entity.chat_type)
+            )
+            row = cursor.fetchone()
+            prev_request_id = row[0] if row else None
+
             cursor = conn.execute('''
                 INSERT INTO history (user_request_time, model_response_time, user_id, chat_type_id,
                                    prev_request_id, rag_context, user_text, model_response) 
@@ -53,20 +60,20 @@ class HistoryRepository:
                   request_entity.response_time,
                   request_entity.user_id,
                   request_entity.chat_type,
-                  request_entity.prev_request_id,
+                  prev_request_id,
                   request_entity.rag_context,
                   request_entity.user_text,
                   request_entity.model_response))
         
-        new_id = cursor.lastrowid
+            new_id = cursor.lastrowid
 
-        conn.execute('''
-            INSERT INTO users (user_id, chat_type_id, last_request_id) 
-            VALUES (?, ?, ?) 
-            ON CONFLICT(user_id, chat_type_id) DO UPDATE SET last_request_id = excluded.last_request_id
-        ''', (request_entity.user_id,
-              request_entity.chat_type,
-              new_id))
+            conn.execute('''
+                INSERT INTO users (user_id, chat_type_id, last_request_id) 
+                VALUES (?, ?, ?) 
+                ON CONFLICT(user_id, chat_type_id) DO UPDATE SET last_request_id = excluded.last_request_id
+            ''', (request_entity.user_id,
+                  request_entity.chat_type,
+                  new_id))
 
     def get_last_request_id(self, user_id: int, chat_type_id: int) -> bool:
         with self._get_connection() as conn:

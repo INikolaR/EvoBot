@@ -41,6 +41,7 @@ class VKBotController:
         elif text in ("/help"):
             self._send_message(peer_id, self.help_message)
         elif text in ("/reset"):
+            self.history_service.reset_context(peer_id, self.chat_type)
             self._send_message(peer_id, self.reset_message)
         elif text in ("/about"):
             self._send_message(peer_id, self.about_message)
@@ -51,7 +52,7 @@ class VKBotController:
 
             prev_context = self.history_service.get_context_for_llm(user_id, self.chat_type)
 
-            response, context_docs = self.rag_service.get_response(raw_text, prev_context)
+            response, context_docs = self.rag_service.get_response(raw_text, [prev_context])
 
             response_time = datetime.now()
 
@@ -60,14 +61,14 @@ class VKBotController:
                 chat_type=self.chat_type,
                 user_text=raw_text,
                 model_response=response[0],
-                rag_context="\n".join(context_docs),
+                rag_context="\n".join(context_docs[0]),
                 request_time=user_request_time,
                 response_time=response_time
             )
 
             self.history_service.add_request(request_model)
             
-            self._send_message(peer_id, response)
+            self._send_message(peer_id, response[0])
 
     def run(self):
         for event in self.longpoll.listen():

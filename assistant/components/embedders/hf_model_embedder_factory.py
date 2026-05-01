@@ -14,7 +14,5 @@ class HFModelEmbedderFactory(EmbedderFactory):
                 "torch_dtype": torch.float16,
                 "trust_remote_code": True
             },
-            encode_kwargs={"normalize_embeddings": True, "batch_size": 1},
-            torch_dtype=torch.float16,
-            trust_remote_code=True
+            encode_kwargs={"normalize_embeddings": True, "batch_size": 1}
         )
