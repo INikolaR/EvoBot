@@ -4,5 +4,6 @@ chromadb
 transformers
 torch
 python-telegram-bot
+vk-api
 langchain-huggingface
 bs4
