@@ -17,10 +17,10 @@ class HistoryService:
                                        request_model.prev_request_id)
         self.history_repository.add_request(request_entity)
 
-    def reset_context(self, user_id: int, chat_type_id: int) -> None:
+    def reset_context(self, user_id: str, chat_type_id: int) -> None:
         self.history_repository.reset_context(user_id, chat_type_id)
     
-    def get_context_for_llm(self, user_id: int, chat_type_id: int, max_messages: int = 20) -> list[dict]:
+    def get_context_for_llm(self, user_id: str, chat_type_id: int, max_messages: int = 20) -> list[dict]:
         context = self.history_repository.get_context_for_llm(user_id, chat_type_id, max_messages)
         chat_template_context = []
         for c in context:

@@ -4,9 +4,10 @@ from assistant.pipeline.rag_service import RAGService
 from chat_bot.services.history_service import HistoryService
 from chat_bot.services.models import RequestModel
 from datetime import datetime
+import hashlib
 
 class VKBotController:
-    def __init__(self, token: str, group_id: int, rag_service: RAGService, history_service: HistoryService):
+    def __init__(self, token: str, group_id: int, rag_service: RAGService, history_service: HistoryService, salt: str):
         self.chat_type = 2
         
         self.token = token
@@ -30,6 +31,9 @@ class VKBotController:
             random_id=0
         )
 
+    def _get_anonymous_id(self, user_id: int) -> str:
+        return hashlib.sha256(f"{user_id}_{self.salt}".encode()).hexdigest()
+
     def _handle_message(self, event):
         msg = event.object.message
         raw_text = msg.get("text", "").strip()
@@ -41,12 +45,12 @@ class VKBotController:
         elif text in ("/help"):
             self._send_message(peer_id, self.help_message)
         elif text in ("/reset"):
-            self.history_service.reset_context(peer_id, self.chat_type)
+            self.history_service.reset_context(self._get_anonymous_id(peer_id), self.chat_type)
             self._send_message(peer_id, self.reset_message)
         elif text in ("/about"):
             self._send_message(peer_id, self.about_message)
         else:
-            user_id = msg.get("from_id")
+            user_id = self._get_anonymous_id(peer_id)
             vk_timestamp = msg.get("date")
             user_request_time = datetime.fromtimestamp(vk_timestamp)
 

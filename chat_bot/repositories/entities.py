@@ -4,7 +4,7 @@ from typing import Optional
 
 @dataclass
 class RequestEntity:
-    user_id: int
+    user_id: str
     chat_type: int
     user_text: str
     model_response: str
@@ -15,6 +15,6 @@ class RequestEntity:
 
 @dataclass
 class UserEntity:
-    user_id: int
+    user_id: str
     chat_type: int
     last_request_id: Optional[int] = None

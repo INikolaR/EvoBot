@@ -25,6 +25,10 @@ def main():
     path = os.getenv("SQLITE_PATH")
     if not vk_token:
         raise ValueError("SQLITE_PATH not set!")
+    
+    salt = os.getenv("CONTROLLER_SALT")
+    if not vk_token:
+        raise ValueError("CONTROLLER_SALT not set!")
 
     rag_service = RAGService()
     history_repository = HistoryRepository(db_path=path)
@@ -33,13 +37,15 @@ def main():
     tg_bot = TelegramBotController(
         token=tg_token,
         rag_service=rag_service,
-        history_service=history_service
+        history_service=history_service,
+        salt=salt
     )
     vk_bot = VKBotController(
         token=vk_token,
         group_id=vk_group_id,
         rag_service=rag_service,
-        history_service=history_service
+        history_service=history_service,
+        salt=salt
     )
     
     vk_thread = threading.Thread(target=_run_vk_bot, args=(vk_bot,), daemon=True)

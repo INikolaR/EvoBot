@@ -4,9 +4,10 @@ from datetime import datetime, timezone
 from assistant.pipeline.rag_service import RAGService
 from chat_bot.services.history_service import HistoryService
 from chat_bot.services.models import RequestModel
+import hashlib
 
 class TelegramBotController:
-    def __init__(self, token: str, rag_service: RAGService, history_service: HistoryService):
+    def __init__(self, token: str, rag_service: RAGService, history_service: HistoryService, salt: str):
         self.chat_type = 1
         
         self.token = token
@@ -27,12 +28,15 @@ class TelegramBotController:
         self.app.add_handler(CommandHandler("about", self.about))
         self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
         self.app.add_handler(MessageHandler(filters.COMMAND, self.unknown))
+    
+    def _get_anonymous_id(self, user_id: int) -> str:
+        return hashlib.sha256(f"{user_id}_{self.salt}".encode()).hexdigest()
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(self.start_message)
 
     async def reset(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        user_id = update.effective_user.id
+        user_id = self._get_anonymous_id(update.effective_user.id)
         self.history_service.reset_context(user_id, self.chat_type)
         await update.message.reply_text(self.reset_message)
 
@@ -47,7 +51,7 @@ class TelegramBotController:
     
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         text = update.message.text
-        user_id = update.effective_user.id
+        user_id = self._get_anonymous_id(update.effective_user.id)
         
         user_request_time = update.message.date
         if user_request_time.tzinfo is not None:
