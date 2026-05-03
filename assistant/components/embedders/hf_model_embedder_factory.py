@@ -11,7 +11,6 @@ class HFModelEmbedderFactory(EmbedderFactory):
             model_name=hf_model_name,
             model_kwargs={
                 "device": "cuda:0",
-                "torch_dtype": torch.float16,
                 "trust_remote_code": True
             },
             encode_kwargs={"normalize_embeddings": True, "batch_size": 1}
