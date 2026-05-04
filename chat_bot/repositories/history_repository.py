@@ -24,7 +24,7 @@ class HistoryRepository:
                     request_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_request_time DATETIME NOT NULL,
                     model_response_time DATETIME NOT NULL,
-                    user_id TEXT NOT NULL,
+                    user_id_hash TEXT NOT NULL,
                     chat_type_id INTEGER NOT NULL,
                     prev_request_id INTEGER,
                     rag_context TEXT,
@@ -35,10 +35,10 @@ class HistoryRepository:
             ''')
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS users (
-                    user_id TEXT NOT NULL,
+                    user_id_hash TEXT NOT NULL,
                     chat_type_id INTEGER NOT NULL,
                     last_request_id INTEGER,
-                    PRIMARY KEY (user_id, chat_type_id)
+                    PRIMARY KEY (user_id_hash, chat_type_id)
                     FOREIGN KEY (last_request_id) REFERENCES history(request_id)
                 );
             ''')
@@ -46,14 +46,14 @@ class HistoryRepository:
     def add_request(self, request_entity: RequestEntity):
         with self._get_connection() as conn:
             cursor = conn.execute(
-                'SELECT last_request_id FROM users WHERE user_id = ? AND chat_type_id = ?',
+                'SELECT last_request_id FROM users WHERE user_id_hash = ? AND chat_type_id = ?',
                 (request_entity.user_id, request_entity.chat_type)
             )
             row = cursor.fetchone()
             prev_request_id = row[0] if row else None
 
             cursor = conn.execute('''
-                INSERT INTO history (user_request_time, model_response_time, user_id, chat_type_id,
+                INSERT INTO history (user_request_time, model_response_time, user_id_hash, chat_type_id,
                                    prev_request_id, rag_context, user_text, model_response) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ''', (request_entity.request_time,
@@ -68,9 +68,9 @@ class HistoryRepository:
             new_id = cursor.lastrowid
 
             conn.execute('''
-                INSERT INTO users (user_id, chat_type_id, last_request_id) 
+                INSERT INTO users (user_id_hash, chat_type_id, last_request_id) 
                 VALUES (?, ?, ?) 
-                ON CONFLICT(user_id, chat_type_id) DO UPDATE SET last_request_id = excluded.last_request_id
+                ON CONFLICT(user_id_hash, chat_type_id) DO UPDATE SET last_request_id = excluded.last_request_id
             ''', (request_entity.user_id,
                   request_entity.chat_type,
                   new_id))
@@ -87,7 +87,7 @@ class HistoryRepository:
     def reset_context(self, user_id: str, chat_type_id: int) -> None:
         with self._get_connection() as conn:
             conn.execute('''
-                INSERT INTO users (user_id, chat_type_id, last_request_id) 
+                INSERT INTO users (user_id_hash, chat_type_id, last_request_id) 
                 VALUES (?, ?, NULL) 
                 ON CONFLICT(user_id, chat_type_id) DO UPDATE SET last_request_id = excluded.last_request_id
             ''', (user_id, chat_type_id))
@@ -95,7 +95,7 @@ class HistoryRepository:
     def get_context_for_llm(self, user_id: str, chat_type_id: int, max_messages: int = 20) -> list[dict]:
         with self._get_connection() as conn:
             cursor = conn.execute(
-                'SELECT last_request_id FROM users WHERE user_id = ? AND chat_type_id = ?',
+                'SELECT last_request_id FROM users WHERE user_id_hash = ? AND chat_type_id = ?',
                 (user_id, chat_type_id)
             )
             row = cursor.fetchone()

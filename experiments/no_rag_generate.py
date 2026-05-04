@@ -1,10 +1,13 @@
 from assistant.components.generators.hf_model_generator import HFModelGenerator
 import json
 import torch
+import sys
 
 assert torch.cuda.is_available(), "No CUDA provided!"
 
-model = HFModelGenerator("Qwen/Qwen2.5-3B-Instruct")
+generator_name = sys.argv[1]
+
+model = HFModelGenerator(generator_name)
 
 with open("data/else/dataset.json", "r", encoding="utf-8") as f:
     elements = json.load(f)
@@ -31,7 +34,7 @@ for i in range(0, len(elements), batch_size):
 
     model_answer_batch = model(prompt_batch, temperature=0.0)
 
-    json_result_batch = [{"question" : elem["question"], "model_answer" : model_answer, "reference_answer" : elem["answer"]} for elem, model_answer in zip(elem_batch, model_answer_batch)]
+    json_result_batch = [{"question" : elem["question"], "model_answer" : model_answer, "reference_answer" : elem["answer"], "reference_context" : elem["paragraph"]} for elem, model_answer in zip(elem_batch, model_answer_batch)]
 
     json_results.extend(json_result_batch)
 

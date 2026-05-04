@@ -9,6 +9,7 @@ import hashlib
 class VKBotController:
     def __init__(self, token: str, group_id: int, rag_service: RAGService, history_service: HistoryService, salt: str):
         self.chat_type = 2
+        self.salt = salt
         
         self.token = token
         self.group_id = group_id

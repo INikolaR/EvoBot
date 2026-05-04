@@ -48,11 +48,11 @@ def main():
         salt=salt
     )
     
+    print("STARTED")
     vk_thread = threading.Thread(target=_run_vk_bot, args=(vk_bot,), daemon=True)
     vk_thread.start()
     tg_bot.run()
     
-    print("STARTED")
 
 if __name__ == "__main__":
     main()

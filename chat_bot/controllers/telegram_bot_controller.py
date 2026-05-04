@@ -9,6 +9,7 @@ import hashlib
 class TelegramBotController:
     def __init__(self, token: str, rag_service: RAGService, history_service: HistoryService, salt: str):
         self.chat_type = 1
+        self.salt = salt
         
         self.token = token
         self.rag_service = rag_service

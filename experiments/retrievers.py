@@ -35,7 +35,6 @@ else:
     exit(1)
 
 try:
-    # embedder_names = ["Qwen/Qwen3-Embedding-0.6B", "Qwen/Qwen3-Embedding-4B", "Qwen/Qwen3-Embedding-8B", "ai-sage/Giga-Embeddings-instruct", "ai-forever/FRIDA", "sergeyzh/BERTA", "intfloat/e5-mistral-7b-instruct"]
     model = HFModelEmbedderFactory().create_embedder(hf_model_name=model_name)
 except Exception as e:
     print("Unsupported model")
