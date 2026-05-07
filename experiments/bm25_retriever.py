@@ -1,9 +1,6 @@
-from assistant.pipeline.rag_service import RAGService
 from assistant.components.chunkers.recursive_character_chunker import RecursiveCharacterChunker
 from assistant.components.chunkers.fixed_chunker import FixedLengthChunker
 from assistant.components.chunkers.semantic_chunker import EmbeddingSemanticChunker
-from assistant.components.embedders.hf_model_embedder_factory import HFModelEmbedderFactory
-from assistant.components.generators.default_generator import DefaultGenerator
 import json
 import torch
 import sys

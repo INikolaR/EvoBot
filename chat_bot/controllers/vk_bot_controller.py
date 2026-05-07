@@ -80,5 +80,5 @@ class VKBotController:
             if event.type == VkBotEventType.MESSAGE_NEW:
                 try:
                     self._handle_message(event)
-                except Exception as e:
+                except Exception:
                     pass

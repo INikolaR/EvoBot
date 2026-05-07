@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from datetime import datetime, timezone
+from datetime import datetime
 from assistant.pipeline.rag_service import RAGService
 from chat_bot.services.history_service import HistoryService
 from chat_bot.services.models import RequestModel

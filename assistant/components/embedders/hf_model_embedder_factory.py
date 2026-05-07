@@ -1,7 +1,6 @@
 from assistant.core.embedder_factory import EmbedderFactory
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.embeddings import Embeddings
-import torch
 
 class HFModelEmbedderFactory(EmbedderFactory):
     def __init__(self):

@@ -90,7 +90,7 @@ for txt_file in txt_files:
                 error_count += 1
                 pass
             json_results.append(o)
-    with open(f"experiment_results/judge_outputs/" + txt_file.split('/')[-1], "w", encoding="utf-8") as f:
+    with open("experiment_results/judge_outputs/" + txt_file.split('/')[-1], "w", encoding="utf-8") as f:
         f.write(json.dumps(json_results, ensure_ascii=False, indent=4))
 
     with open("experiment_results/reports/" + txt_file.split('/')[-1], "w", encoding="utf-8") as f:

@@ -7,7 +7,6 @@ from assistant.components.generators.hf_model_generator import HFModelGenerator
 from assistant.core.chunker import Chunker
 from assistant.core.generator import Generator
 from langchain_core.embeddings import Embeddings
-from chat_bot.services.history_service import HistoryService
 import json
 
 class RAGService:
