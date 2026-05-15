@@ -5,6 +5,9 @@ from chat_bot.controllers.vk_bot_controller import VKBotController
 from assistant.pipeline.rag_service import RAGService
 from chat_bot.repositories.history_repository import HistoryRepository
 from chat_bot.services.history_service import HistoryService
+from assistant.components.chunkers.semantic_chunker import SemanticChunker
+from assistant.components.embedders.hf_model_embedder_factory import HFModelEmbedderFactory
+from assistant.components.generators.hf_model_generator import HFModelGenerator
 
 def _run_vk_bot(vk_bot: VKBotController):
     vk_bot.run()
@@ -30,7 +33,11 @@ def main():
     if not vk_token:
         raise ValueError("CONTROLLER_SALT not set!")
 
-    rag_service = RAGService()
+    rag_service = RAGService(
+        SemanticChunker(model_name="Qwen/Qwen3-Embedding-4B"),
+        HFModelEmbedderFactory().create_embedder(hf_model_name="Qwen/Qwen3-Embedding-4B"),
+        HFModelGenerator(hf_model_name="Qwen/Qwen2.5-14B-Instruct")
+    )
     history_repository = HistoryRepository(db_path=path)
     history_service = HistoryService(history_repository)
     
