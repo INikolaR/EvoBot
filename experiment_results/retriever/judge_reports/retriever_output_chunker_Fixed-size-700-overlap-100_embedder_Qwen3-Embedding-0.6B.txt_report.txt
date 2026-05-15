@@ -1,0 +1,5 @@
+items count: 158
+error count: 0
+error ratio: 0.0
+mrr: 0.6255274261603376
+p@3: 0.3670886075949372

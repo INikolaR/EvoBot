@@ -1,0 +1,21 @@
+name: conda_exp_env
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+
+  - transformers=4.57.1
+  - datasets=4.0.0
+
+  - langchain-core=0.3.0
+  - langchain-community=0.4.1
+  - scikit-learn==1.8.0
+
+  - pip
+  - pip:
+      - langchain-huggingface==1.2.0
+      - accelerate==1.13.0
+      - pytorch==2.6.0
+      - chromadb==1.5.5
